@@ -39,8 +39,12 @@ void filter_sepia(Image* image, void* params);
 void filter_vignette(Image* image, void* params);
 
 // Вспомогательные функции
-void apply_matrix_filter(Image* image, float kernel[3][3]);
+void apply_matrix_filter(Image* image, float kernel[3][3], float divisor);
 void apply_gaussian_blur(Image* image, float sigma);
 Color get_median_color(Color* colors, int count);
+
+// Утилиты фильтров
+void filter_box_blur(Image* image, int radius);
+void filter_emboss(Image* image);
 
 #endif // FILTERS_H

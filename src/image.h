@@ -15,7 +15,7 @@ typedef struct {
     Color* data;
     int width;
     int height;
-    int capacity; // Для динамического массива
+    int capacity;
 } Image;
 
 // Создание и уничтожение изображения
@@ -42,5 +42,10 @@ Color color_sub(Color c1, Color c2);
 Color color_mul(Color c, float scalar);
 Color color_clamp(Color c);
 float color_luminance(Color c);
+float color_distance(Color c1, Color c2);
+
+// Утилиты
+void image_fill(Image* image, Color color);
+void image_clear(Image* image);
 
 #endif // IMAGE_H

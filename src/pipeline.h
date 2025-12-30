@@ -38,4 +38,7 @@ void pipeline_apply(FilterPipeline* pipeline, Image* image);
 // Очистка пайплайна
 void pipeline_clear(FilterPipeline* pipeline);
 
+// Получение количества фильтров
+int pipeline_get_count(const FilterPipeline* pipeline);
+
 #endif // PIPELINE_H

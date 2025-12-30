@@ -9,6 +9,8 @@ typedef struct {
     char* output_file;
     FilterPipeline* pipeline;
     int show_help;
+    int error;
+    char* error_message;
 } CLIArgs;
 
 // Парсинг аргументов командной строки
@@ -19,5 +21,8 @@ void cli_free_args(CLIArgs* args);
 
 // Вывод справки
 void cli_print_help(void);
+
+// Вывод ошибки
+void cli_print_error(const CLIArgs* args);
 
 #endif // CLI_H

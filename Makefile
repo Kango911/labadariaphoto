@@ -1,7 +1,7 @@
-# Компилятор и флаги
+# Компилятор для Windows
 CC = gcc
-CFLAGS = -std=c11 -Wall -Wextra -Werror -O2 -lm -g
-TARGET = image_craft
+CFLAGS = -std=c11 -Wall -Wextra -Werror -O2 -D_CRT_SECURE_NO_WARNINGS
+TARGET = image_craft.exe
 
 # Исходные файлы
 SRC_DIR = src
@@ -26,25 +26,21 @@ $(TARGET): $(OBJS)
 
 # Очистка
 clean:
-	rm -f $(OBJS) $(TARGET)
-	rm -f test_*.bmp
+	del /Q $(subst /,\,$(OBJS)) $(TARGET) 2>nul || true
+	del /Q *.bmp 2>nul || true
+
+# Запуск
+run: $(TARGET)
+	.\$(TARGET)
 
 # Тестирование
 test: $(TARGET)
-	@echo "Running tests..."
-	@if [ -f tests/test_scripts/test.sh ]; then \
-		cd tests && ./test_scripts/test.sh; \
-	else \
-		./image_craft tests/test_images/lenna.bmp test_output.bmp -gs; \
-		echo "Test completed. Check test_output.bmp"; \
-	fi
+	@echo Running tests...
+	@if exist tests\test_scripts\test.bat (
+		cd tests && test_scripts\test.bat
+	) else (
+		.\$(TARGET) tests\test_images\lenna.bmp test_output.bmp -gs
+		echo Test completed. Check test_output.bmp
+	)
 
-# Форматирование кода
-format:
-	find src -name "*.c" -o -name "*.h" | xargs clang-format -i
-
-# Сборка релизной версии
-release: CFLAGS = -std=c11 -Wall -Wextra -O3 -lm -DNDEBUG
-release: clean $(TARGET)
-
-.PHONY: all clean test format release
+.PHONY: all clean run test

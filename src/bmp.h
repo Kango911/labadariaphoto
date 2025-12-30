@@ -36,4 +36,7 @@ bool bmp_write(const char* filename, const Image* image);
 // Проверка формата файла
 bool bmp_is_valid_format(const char* filename);
 
+// Получение информации о BMP файле
+bool bmp_get_info(const char* filename, int* width, int* height);
+
 #endif // BMP_H

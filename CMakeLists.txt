@@ -4,10 +4,10 @@ project(image_craft C)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-# Флаги компилятора
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror")
-set(CMAKE_C_FLAGS_DEBUG "-g")
-set(CMAKE_C_FLAGS_RELEASE "-O3")
+# Настройки для Windows
+if(WIN32)
+    add_definitions(-D_WIN32 -D_CRT_SECURE_NO_WARNINGS)
+endif()
 
 # Исходные файлы
 set(SOURCES
@@ -31,5 +31,15 @@ set(HEADERS
 # Создание исполняемого файла
 add_executable(image_craft ${SOURCES} ${HEADERS})
 
-# Подключение математической библиотеки
-target_link_libraries(image_craft m)
+# Настройки компилятора
+target_compile_options(image_craft PRIVATE -Wall -Wextra -Werror -O2)
+
+# Для Windows нужна математическая библиотека
+if(WIN32)
+    target_link_libraries(image_craft m)
+else()
+    target_link_libraries(image_craft m)
+endif()
+
+# Копирование тестовых изображений
+file(COPY tests/test_images DESTINATION ${CMAKE_BINARY_DIR}/tests)

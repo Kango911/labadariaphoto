@@ -3,14 +3,17 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
+#include <stdio.h>
 
 Image* image_create(int width, int height) {
     if (width <= 0 || height <= 0) {
+        fprintf(stderr, "Error: Invalid image dimensions %dx%d\n", width, height);
         return NULL;
     }
 
     Image* image = (Image*)malloc(sizeof(Image));
     if (!image) {
+        fprintf(stderr, "Error: Memory allocation failed for image structure\n");
         return NULL;
     }
 
@@ -18,14 +21,12 @@ Image* image_create(int width, int height) {
     image->height = height;
     image->capacity = width * height;
 
-    image->data = (Color*)malloc(sizeof(Color) * image->capacity);
+    image->data = (Color*)calloc(image->capacity, sizeof(Color));
     if (!image->data) {
+        fprintf(stderr, "Error: Memory allocation failed for image data\n");
         free(image);
         return NULL;
     }
-
-    // Инициализация черным цветом
-    memset(image->data, 0, sizeof(Color) * image->capacity);
 
     return image;
 }
@@ -76,18 +77,22 @@ void image_resize(Image* image, int new_width, int new_height) {
         return;
     }
 
-    Color* new_data = (Color*)malloc(sizeof(Color) * new_width * new_height);
+    Color* new_data = (Color*)calloc(new_width * new_height, sizeof(Color));
     if (!new_data) {
         return;
     }
 
-    // Копирование с масштабированием (простое ближайшее соседство)
+    // Простое масштабирование (ближайший сосед)
+    float scale_x = (float)image->width / new_width;
+    float scale_y = (float)image->height / new_height;
+
     for (int y = 0; y < new_height; y++) {
         for (int x = 0; x < new_width; x++) {
-            int src_x = x * image->width / new_width;
-            int src_y = y * image->height / new_height;
-            src_x = src_x < image->width ? src_x : image->width - 1;
-            src_y = src_y < image->height ? src_y : image->height - 1;
+            int src_x = (int)(x * scale_x);
+            int src_y = (int)(y * scale_y);
+
+            if (src_x >= image->width) src_x = image->width - 1;
+            if (src_y >= image->height) src_y = image->height - 1;
 
             new_data[y * new_width + x] = image_get_pixel(image, src_x, src_y);
         }
@@ -98,6 +103,19 @@ void image_resize(Image* image, int new_width, int new_height) {
     image->width = new_width;
     image->height = new_height;
     image->capacity = new_width * new_height;
+}
+
+void image_fill(Image* image, Color color) {
+    if (!image) return;
+
+    for (int i = 0; i < image->width * image->height; i++) {
+        image->data[i] = color_clamp(color);
+    }
+}
+
+void image_clear(Image* image) {
+    if (!image) return;
+    memset(image->data, 0, sizeof(Color) * image->width * image->height);
 }
 
 // Функции для работы с цветом
@@ -137,17 +155,24 @@ Color color_clamp(Color c) {
     Color result = c;
 
     if (result.r < 0.0f) result.r = 0.0f;
-    if (result.r > 1.0f) result.r = 1.0f;
+    else if (result.r > 1.0f) result.r = 1.0f;
 
     if (result.g < 0.0f) result.g = 0.0f;
-    if (result.g > 1.0f) result.g = 1.0f;
+    else if (result.g > 1.0f) result.g = 1.0f;
 
     if (result.b < 0.0f) result.b = 0.0f;
-    if (result.b > 1.0f) result.b = 1.0f;
+    else if (result.b > 1.0f) result.b = 1.0f;
 
     return result;
 }
 
 float color_luminance(Color c) {
     return 0.299f * c.r + 0.587f * c.g + 0.114f * c.b;
+}
+
+float color_distance(Color c1, Color c2) {
+    float dr = c1.r - c2.r;
+    float dg = c1.g - c2.g;
+    float db = c1.b - c2.b;
+    return sqrtf(dr * dr + dg * dg + db * db);
 }
