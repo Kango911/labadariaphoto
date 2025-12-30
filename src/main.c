@@ -1,54 +1,72 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "image.h"
 #include "bmp.h"
 #include "cli.h"
 #include "pipeline.h"
 
 int main(int argc, char** argv) {
-    printf("=== ImageCraft - Laboratory Work #1 ===\n");
+    printf("╔══════════════════════════════════════════════════════════╗\n");
+    printf("║                 ImageCraft - Лабораторная работа №1     ║\n");
+    printf("║                 ФПМ, Лабораторная работа                ║\n");
+    printf("╚══════════════════════════════════════════════════════════╝\n");
+    printf("\n");
 
     // Парсинг аргументов командной строки
     CLIArgs* args = cli_parse_args(argc, argv);
     if (!args) {
+        fprintf(stderr, "❌ Критическая ошибка: Не удалось распознать аргументы\n");
         return EXIT_FAILURE;
     }
 
+    // Вывод справки, если запрошено
     if (args->show_help) {
+        cli_print_help();
         cli_free_args(args);
         return EXIT_SUCCESS;
     }
 
+    // Обработка ошибок парсинга
+    if (args->error) {
+        cli_print_error(args);
+        cli_free_args(args);
+        return EXIT_FAILURE;
+    }
+
     // Проверка формата входного файла
     if (!bmp_is_valid_format(args->input_file)) {
-        fprintf(stderr, "Error: %s is not a valid BMP file\n", args->input_file);
+        fprintf(stderr, "❌ ОШИБКА: Файл '%s' не является валидным BMP файлом\n", args->input_file);
+        fprintf(stderr, "   Поддерживаются только 24-битные BMP без сжатия\n");
         cli_free_args(args);
         return EXIT_FAILURE;
     }
 
     // Чтение изображения
-    printf("Reading image from %s...\n", args->input_file);
+    printf("📁 Чтение изображения: %s\n", args->input_file);
     Image* image = bmp_read(args->input_file);
     if (!image) {
-        fprintf(stderr, "Error: Cannot read image from %s\n", args->input_file);
+        fprintf(stderr, "❌ ОШИБКА: Не удалось прочитать изображение из '%s'\n", args->input_file);
+        fprintf(stderr, "   Проверьте наличие файла и его формат\n");
         cli_free_args(args);
         return EXIT_FAILURE;
     }
 
-    printf("Image loaded: %d x %d pixels\n", image->width, image->height);
+    printf("✅ Изображение загружено: %d x %d пикселей\n", image->width, image->height);
 
     // Применение фильтров
     if (args->pipeline->count > 0) {
-        printf("\nApplying %d filter(s)...\n", args->pipeline->count);
+        printf("\n🔧 Применение фильтров...\n");
         pipeline_apply(args->pipeline, image);
     } else {
-        printf("\nNo filters specified, saving original image...\n");
+        printf("\nℹ️  Фильтры не указаны, сохраняю исходное изображение\n");
     }
 
     // Сохранение изображения
-    printf("\nSaving image to %s...\n", args->output_file);
+    printf("💾 Сохранение изображения: %s\n", args->output_file);
     if (!bmp_write(args->output_file, image)) {
-        fprintf(stderr, "Error: Cannot save image to %s\n", args->output_file);
+        fprintf(stderr, "❌ ОШИБКА: Не удалось сохранить изображение в '%s'\n", args->output_file);
+        fprintf(stderr, "   Проверьте права доступа и свободное место на диске\n");
         image_destroy(image);
         cli_free_args(args);
         return EXIT_FAILURE;
@@ -58,6 +76,8 @@ int main(int argc, char** argv) {
     image_destroy(image);
     cli_free_args(args);
 
-    printf("Done!\n");
+    printf("\n🎉 УСПЕХ! Обработка завершена.\n");
+    printf("   Результат сохранен в указанный файл.\n\n");
+
     return EXIT_SUCCESS;
 }
