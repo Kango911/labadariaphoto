@@ -32,7 +32,7 @@ set(HEADERS
 add_executable(image_craft ${SOURCES} ${HEADERS})
 
 # Настройки компилятора
-target_compile_options(image_craft PRIVATE -Wall -Wextra -Werror -O2)
+target_compile_options(image_craft PRIVATE -Wall -Wextra -Werror -Wno-unused-parameter -O2)
 
 # Для Windows нужна математическая библиотека
 if(WIN32)
