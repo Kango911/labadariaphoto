@@ -372,4 +372,36 @@ void apply_gaussian_blur(Image* image, float sigma) {
     // Вертикальное размытие
     for (int y = 0; y < image->height; y++) {
         for (int x = 0; x < image->width; x++) {
-            Color sum_color = color_create(0,
+            Color sum_color = color_create(0, 0, 0);
+
+            for (int k = -half; k <= half; k++) {
+                int ny = y + k;
+                if (ny < 0) ny = 0;
+                if (ny >= image->height) ny = image->height - 1;
+
+                Color pixel = image_get_pixel(temp, x, ny);
+                sum_color = color_add(sum_color, color_mul(pixel, kernel[k + half]));
+            }
+
+            image_set_pixel(image, x, y, sum_color);
+        }
+    }
+
+    image_destroy(temp);
+    free(kernel);
+}
+
+// Вспомогательная функция для нахождения медианного цвета
+Color get_median_color(Color* colors, int count) {
+    if (count <= 0) {
+        return color_create(0, 0, 0);
+    }
+
+    // Простая реализация - возвращаем средний цвет
+    Color sum = color_create(0, 0, 0);
+    for (int i = 0; i < count; i++) {
+        sum = color_add(sum, colors[i]);
+    }
+
+    return color_mul(sum, 1.0f / count);
+}
